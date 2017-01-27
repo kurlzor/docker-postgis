@@ -1,21 +1,21 @@
 language: bash
 services: docker
-
 env:
-  - VERSION=9.3 VARIANT=alpine
-
+  matrix:
+    - VERSION=9.3 VARIANT=alpine
 install:
   - git clone https://github.com/evaneos/docker-postgis.git ~/docker-postgis
-
 before_script:
   - env | sort
   - cd "$VERSION"
-  - image="evaneos/postgis:${VERSION}${VARIANT:+-${VARIANT}}"
-
+  - export image="evaneos/postgis:${VERSION}${VARIANT:+-${VARIANT}}"
 script:
   - docker build -t "$image" .
-
 after_script:
   - docker images
 
-# vim:set et ts=2 sw=2:
+after_success:
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+    docker push $image;
+    fi
